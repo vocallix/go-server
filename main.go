@@ -1,9 +1,29 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+type Sales struct {
+	Id       int64              `bson:"_id,omitempty"`
+	Date     primitive.DateTime `bson:"date,omitempty"`
+	Item     string             `bson:"item,omitempty"`
+	Price    float64            `bson:"price,omitempty"`
+	Quantity int64              `bson:"quantity,omitempty"`
+}
+
+func (s *Sales) String() string {
+	return fmt.Sprintf("Id : %v, Date : %v, Item : %v, Price :%v, Quantity :%v", s.Id, s.Date, s.Item, s.Price, s.Quantity)
+}
 
 func HandleHistory(w http.ResponseWriter, r *http.Request) {
 
@@ -18,12 +38,54 @@ func HandleHistory(w http.ResponseWriter, r *http.Request) {
 func HandleFriends(w http.ResponseWriter, r *http.Request) {
 
 	// 데이터는 db에서 가져와야되고
+	// 접속 확인
+	var client *mongo.Client
+	var err error
+	client, err = mongo.NewClient(options.Client().ApplyURI("mongodb+srv://3dmp:VTwAnWPBJhwaZEWe@cluster0.vkgcv.mongodb.net"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	ctx, _ := context.WithTimeout(context.Background(), 1*time.Second)
 
-	fmt.Fprintf(w, "친구 목록\n")
-	fmt.Fprintf(w, "제갈량\n")
-	fmt.Fprintf(w, "하우돈\n")
-	fmt.Fprintf(w, "장비\n")
-	fmt.Fprintf(w, "여포\n")
+	time.Sleep(2 * time.Second)
+
+	// 접속
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Disconnect(ctx)
+
+	// databases, err := client.ListDatabaseNames(ctx, bson.M{})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Println(databases)
+
+	collection := client.Database("mongodbVSCodePlaygroundDB").Collection("sales")
+
+	cur, currErr := collection.Find(ctx, bson.D{})
+
+	if currErr != nil {
+		panic(currErr)
+	}
+	defer cur.Close(ctx)
+
+	var sales []Sales
+	if err = cur.All(ctx, &sales); err != nil {
+		panic(err)
+	}
+	// fmt.Println(sales)
+
+	for _, s := range sales {
+		fmt.Fprintf(w, s.String())
+	}
+
+	// fmt.Fprintf(w, "친구 목록\n")
+	// fmt.Fprintf(w, "제갈량\n")
+	// fmt.Fprintf(w, "하우돈\n")
+	// fmt.Fprintf(w, "장비\n")
+	// fmt.Fprintf(w, "여포\n")
 }
 
 func main() {
@@ -57,3 +119,5 @@ func main() {
 
 	http.ListenAndServe(":4000", nil)
 }
+
+// mongo drive install
