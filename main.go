@@ -41,15 +41,15 @@ func HandleFriends(w http.ResponseWriter, r *http.Request) {
 	// 접속 확인
 	var client *mongo.Client
 	var err error
-	client, err = mongo.NewClient(options.Client().ApplyURI("mongodb+srv://3dmp:VTwAnWPBJhwaZEWe@cluster0.vkgcv.mongodb.net"))
+	client, err = mongo.NewClient(options.Client().ApplyURI("mongodb+srv://3dmp:VTwAnWPBJhwaZEWe@cluster0.vkgcv.mongodb.net")) //몽고DB 접속클라 만듬
 	if err != nil {
 		log.Fatal(err)
 	}
-	ctx, _ := context.WithTimeout(context.Background(), 1*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
-	time.Sleep(2 * time.Second)
+	//time.Sleep(2 * time.Second)
 
-	// 접속
+	// 접속		//실제 접속
 	err = client.Connect(ctx)
 	if err != nil {
 		log.Fatal(err)
@@ -64,7 +64,9 @@ func HandleFriends(w http.ResponseWriter, r *http.Request) {
 
 	collection := client.Database("mongodbVSCodePlaygroundDB").Collection("sales")
 
-	cur, currErr := collection.Find(ctx, bson.D{})
+	//bson
+	cur, currErr := collection.Find(ctx, bson.D{}) //base.D
+	// cur, currErr := collection.Find(ctx, bson.D{bs}) //base.D
 
 	if currErr != nil {
 		panic(currErr)
