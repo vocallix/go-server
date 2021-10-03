@@ -128,6 +128,8 @@ func main() {
 	// 함께하는 친구 검색
 	http.HandleFunc("/friends", HandleFriends)
 
+	port := 4000
+	fmt.Println("Gamedata server is running on :", port)
 	http.ListenAndServe(":4000", nil)
 }
 
