@@ -130,7 +130,16 @@ func main() {
 
 	port := 4000
 	fmt.Println("Gamedata server is running on :", port)
-	http.ListenAndServe(":4000", nil)
+	//http.ListenAndServe(":4000", nil)
+
+	// err := http.ListenAndServeTLS(":4000", "testdata/x509/ca_cert.pem", "testdata/x509/ca_key.pem", nil)
+
+	err := http.ListenAndServeTLS(":4000", "testdata/x509/server_cert.pem", "testdata/x509/server_key.pem", nil)
+
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
+
 }
 
 // mongo drive install
