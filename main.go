@@ -26,6 +26,7 @@ func (s *Sales) String() string {
 }
 
 func HandleHistory(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("func HandleHistory(w http.ResponseWriter, r *http.Request) { in")
 
 	fmt.Fprintf(w, "전적!\n")
 	fmt.Fprintf(w, "1게임 승\n")
