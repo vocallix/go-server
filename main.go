@@ -37,11 +37,14 @@ func HandleHistory(w http.ResponseWriter, r *http.Request) {
 
 func HandleFriends(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Println("HandleFriends(w http.ResponseWriter, r *http.Request) in")
+
 	// 데이터는 db에서 가져와야되고
 	// 접속 확인
 	var client *mongo.Client
 	var err error
-	client, err = mongo.NewClient(options.Client().ApplyURI("mongodb+srv://3dmp:VTwAnWPBJhwaZEWe@cluster0.vkgcv.mongodb.net")) //몽고DB 접속클라 만듬
+	// client, err = mongo.NewClient(options.Client().ApplyURI("mongodb+srv://3dmp:VTwAnWPBJhwaZEWe@cluster0.vkgcv.mongodb.net")) //몽고DB 접속클라 만듬
+	client, err = mongo.NewClient(options.Client().ApplyURI("mongodb://192.168.0.9:27017")) //몽고DB 접속클라 만듬
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,6 +68,11 @@ func HandleFriends(w http.ResponseWriter, r *http.Request) {
 	collection := client.Database("mongodbVSCodePlaygroundDB").Collection("sales")
 
 	//bson
+	// select * from sales;
+	// select id from sales;
+	// select price from sales;
+	// bson.D{id}
+	// bson.D{price}
 	cur, currErr := collection.Find(ctx, bson.D{}) //base.D
 	// cur, currErr := collection.Find(ctx, bson.D{bs}) //base.D
 
