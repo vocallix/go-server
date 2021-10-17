@@ -2,7 +2,6 @@
 
 start: ## start gamedata server
 	@echo "start gamedata server"
-	@go build
 	@./scripts/run_server.sh
 
 run-frontend-dev: webpack.PID ## Run the frontend and admin apps in dev (using webpack-dev-server)
@@ -15,6 +14,10 @@ webpack.PID:
 		--inline \
 		--progress \
 		& echo "$$!" > webpack.PID
+
+start_mongo: ## start mongodb using by docker
+	@echo "start mongodb using by docker"
+	@docker run -d -p 27017:27017 mongo
 
 .PHONY: help
 
