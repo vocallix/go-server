@@ -1,0 +1,22 @@
+use('gamedata');
+db.user.insertOne({summoner: "hide on bush", rank_solo: { tier: "Diamond", tierNum: 1, score: 75} });
+db.user.insertMany([
+{summoner: "검은머리사나이", rank_solo: { tier: "Diamond", tierNum: 1, score: 36} },
+{summoner: "커피물조절장인", rank_solo: { tier: "Grandmaster", tierNum: null, score: 507} }
+]);
+
+db.game.insertOne(
+{
+createdAt: Timestamp(),
+running_time: "24m35s",
+tier_average: {
+"tier": "Diamond", "tierNum": 1,
+},
+red_team: [
+{player1: ObjectId("616b7babe0128929e03eb010"),}
+],
+blue_tme: [
+{player1: ObjectId("616b7babe0128929e03eb011"),}
+],
+win: "red",
+});
