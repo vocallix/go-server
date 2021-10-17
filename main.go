@@ -36,6 +36,7 @@ func HandleHistory(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "5게임 승\n")
 }
 
+// TODO : error handling
 func HandleFriends(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("HandleFriends(w http.ResponseWriter, r *http.Request) in")
@@ -76,6 +77,10 @@ func HandleFriends(w http.ResponseWriter, r *http.Request) {
 	// bson.D{price}
 	cur, currErr := collection.Find(ctx, bson.D{}) //base.D
 	// cur, currErr := collection.Find(ctx, bson.D{bs}) //base.D
+
+	if cur.RemainingBatchLength() == 0 {
+		fmt.Fprintf(w, "no data")
+	}
 
 	if currErr != nil {
 		panic(currErr)
