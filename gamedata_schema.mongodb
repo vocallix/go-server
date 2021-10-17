@@ -20,3 +20,10 @@ blue_tme: [
 ],
 win: "red",
 });
+
+// crud
+// create
+// read
+// update
+db.orders.update({_id: 2.0},{ $set : {item: "peacan"}});
+// delete
