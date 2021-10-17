@@ -34,13 +34,13 @@ type RankSoloDocument struct {
 
 type Users struct {
 	Id       primitive.ObjectID `bson:"_id,omitempty"`
-	summoner string             `bson:"summoner,omitempty"`
-	RankSolo RankSoloDocument   `bson:"ranksolo"`
+	Summoner string             `bson:"summoner,omitempty"`
+	RankSolo RankSoloDocument   `bson:"rank_solo"`
 }
 
 func (s *Users) String() string {
 	return fmt.Sprintf("Id : %v, summoner : %v, Tier : %v, TierNum :%v, Score :%v",
-		s.Id, s.summoner, s.RankSolo.Tier, s.RankSolo.TierNum, s.RankSolo.Score)
+		s.Id, s.Summoner, s.RankSolo.Tier, s.RankSolo.TierNum, s.RankSolo.Score)
 }
 
 func HandleHistory(w http.ResponseWriter, r *http.Request) {
