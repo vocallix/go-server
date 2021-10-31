@@ -3,45 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"gamedata/db/model"
 	"log"
 	"net/http"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-type Sales struct {
-	Id       int64              `bson:"_id,omitempty"`
-	Date     primitive.DateTime `bson:"date,omitempty"`
-	Item     string             `bson:"item,omitempty"`
-	Price    float64            `bson:"price,omitempty"`
-	Quantity int64              `bson:"quantity,omitempty"`
-}
-
-func (s *Sales) String() string {
-	return fmt.Sprintf("Id : %v, Date : %v, Item : %v, Price :%v, Quantity :%v", s.Id, s.Date, s.Item, s.Price, s.Quantity)
-}
-
-// ? rank solo
-type RankSoloDocument struct {
-	Tier    string `bson:"tier,omitempty"`
-	TierNum int64  `bson:"tierNum,omitempty"`
-	Score   int64  `bson:"score,omitempty"`
-}
-
-type Users struct {
-	Id       primitive.ObjectID `bson:"_id,omitempty"`
-	Summoner string             `bson:"summoner,omitempty"`
-	RankSolo RankSoloDocument   `bson:"rank_solo"`
-}
-
-func (s *Users) String() string {
-	return fmt.Sprintf("Id : %v, summoner : %v, Tier : %v, TierNum :%v, Score :%v",
-		s.Id, s.Summoner, s.RankSolo.Tier, s.RankSolo.TierNum, s.RankSolo.Score)
-}
 
 func HandleHistory(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("func HandleHistory(w http.ResponseWriter, r *http.Request) { in")
@@ -79,12 +49,6 @@ func HandleFriends(w http.ResponseWriter, r *http.Request) {
 	}
 	defer client.Disconnect(ctx)
 
-	// databases, err := client.ListDatabaseNames(ctx, bson.M{})
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(databases)
-
 	collection := client.Database("mongodbVSCodePlaygroundDB").Collection("sales")
 
 	//bson
@@ -94,7 +58,6 @@ func HandleFriends(w http.ResponseWriter, r *http.Request) {
 	// bson.D{id}
 	// bson.D{price}
 	cur, currErr := collection.Find(ctx, bson.D{}) //base.D
-	// cur, currErr := collection.Find(ctx, bson.D{bs}) //base.D
 
 	if cur.RemainingBatchLength() == 0 {
 		fmt.Fprintf(w, "no data")
@@ -105,7 +68,7 @@ func HandleFriends(w http.ResponseWriter, r *http.Request) {
 	}
 	defer cur.Close(ctx)
 
-	var sales []Sales
+	var sales []model.Sales
 	if err = cur.All(ctx, &sales); err != nil {
 		panic(err)
 	}
@@ -114,12 +77,6 @@ func HandleFriends(w http.ResponseWriter, r *http.Request) {
 	for _, s := range sales {
 		fmt.Fprintf(w, s.String())
 	}
-
-	// fmt.Fprintf(w, "친구 목록\n")
-	// fmt.Fprintf(w, "제갈량\n")
-	// fmt.Fprintf(w, "하우돈\n")
-	// fmt.Fprintf(w, "장비\n")
-	// fmt.Fprintf(w, "여포\n")
 }
 
 func HandleUser(w http.ResponseWriter, r *http.Request) {
@@ -130,38 +87,21 @@ func HandleUser(w http.ResponseWriter, r *http.Request) {
 	// 접속 확인
 	var client *mongo.Client
 	var err error
-	// client, err = mongo.NewClient(options.Client().ApplyURI("mongodb+srv://3dmp:VTwAnWPBJhwaZEWe@cluster0.vkgcv.mongodb.net")) //몽고DB 접속클라 만듬
 	client, err = mongo.NewClient(options.Client().ApplyURI("mongodb://192.168.0.9:27017")) //몽고DB 접속클라 만듬
 	if err != nil {
 		log.Fatal(err)
 	}
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
-	//time.Sleep(2 * time.Second)
-
-	// 접속		//실제 접속
 	err = client.Connect(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer client.Disconnect(ctx)
 
-	// databases, err := client.ListDatabaseNames(ctx, bson.M{})
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(databases)
-
 	user := client.Database("gamedata").Collection("user")
 
-	//bson
-	// select * from sales;
-	// select id from sales;
-	// select price from sales;
-	// bson.D{id}
-	// bson.D{price}
 	cur, currErr := user.Find(ctx, bson.D{}) //base.D
-	// cur, currErr := collection.Find(ctx, bson.D{bs}) //base.D
 
 	if cur.RemainingBatchLength() == 0 {
 		fmt.Fprintf(w, "no data")
@@ -172,14 +112,14 @@ func HandleUser(w http.ResponseWriter, r *http.Request) {
 	}
 	defer cur.Close(ctx)
 
-	var users []Users
+	var users []model.Users
 	if err = cur.All(ctx, &users); err != nil {
 		panic(err)
 	}
 	// fmt.Println(sales)
 
 	for _, s := range users {
-		fmt.Fprintf(w, s.String())
+		fmt.Fprintf(w, s.String()+"\n")
 	}
 }
 

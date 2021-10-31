@@ -19,6 +19,10 @@ start_mongo: ## start mongodb using by docker
 	@echo "start mongodb using by docker"
 	@docker run -d -p 27017:27017 mongo
 
+# restart_mongo: ## start mongodb using by docker
+# 	@echo "start mongodb using by docker"
+# 	@docker start $(docker ps -a | grep mongo | awk '{print $1}')
+
 .PHONY: help
 
 help:
