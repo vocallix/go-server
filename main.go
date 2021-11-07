@@ -86,7 +86,7 @@ func HandleFriends(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func HandleUser(w http.ResponseWriter, r *http.Request) {
+func HandleUsers(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("HandleUser(w http.ResponseWriter, r *http.Request) in")
 
@@ -130,8 +130,7 @@ func HandleUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func HandleUserScore(w http.ResponseWriter, r *http.Request) {
-
+func HandleUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("HandleUser(w http.ResponseWriter, r *http.Request) in")
 
 	// 데이터는 db에서 가져와야되고
@@ -152,40 +151,44 @@ func HandleUserScore(w http.ResponseWriter, r *http.Request) {
 
 	user := client.Database("gamedata").Collection("user")
 
-	cur, currErr := user.Find(ctx, bson.D{}) //base.D
-
-	if cur.RemainingBatchLength() == 0 {
-		fmt.Fprintf(w, "no data")
-	}
-
-	if currErr != nil {
-		panic(currErr)
-	}
-	defer cur.Close(ctx)
-
-	var users []model.Users
-	if err = cur.All(ctx, &users); err != nil {
-		panic(err)
-	}
-	// fmt.Println(sales)
-
 	var who model.Users
 
-	//Diamond
-	fmt.Fprintf(w, "test\n")
-
-	findFilter := bson.D{{"summoner", "hide on bush"}}
-	currErr = user.FindOne(ctx, findFilter).Decode(&who)
-	if currErr != nil {
+	findSummonerFilter := bson.D{{"summoner", "hide on bush"}}
+	err = user.FindOne(ctx, findSummonerFilter).Decode(&who)
+	if err != nil {
 		panic(err)
 	}
 	fmt.Fprintf(w, who.String()+"\n")
+}
+
+func HandleUserScore(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Println("HandleUserScore(w http.ResponseWriter, r *http.Request) in")
+
+	// 데이터는 db에서 가져와야되고
+	// 접속 확인
+	var client *mongo.Client
+	var err error
+	client, err = mongo.NewClient(options.Client().ApplyURI("mongodb://192.168.0.9:27017")) //몽고DB 접속클라 만듬
+	if err != nil {
+		log.Fatal(err)
+	}
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Disconnect(ctx)
+
+	user := client.Database("gamedata").Collection("user")
 
 	//https://www.mongodb.com/blog/post/quick-start-golang--mongodb--modeling-documents-with-go-data-structures
 	//https://www.w3resource.com/mongodb/mongodb-conditional-operators.php
-	findAllFilter := bson.M{"rank_solo.score": bson.D{{"$gte", 70}}}
 
-	cur, currErr = user.Find(ctx, findAllFilter)
+	findGreaterAndEqualTo70Filter := bson.M{"rank_solo.score": bson.D{{"$gte", 70}}}
+
+	cur, currErr := user.Find(ctx, findGreaterAndEqualTo70Filter)
 	if currErr != nil {
 		panic(currErr)
 	}
@@ -195,31 +198,35 @@ func HandleUserScore(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "no data\n")
 	}
 
-	var userData []model.Users
-	if err = cur.All(ctx, &userData); err != nil {
+	var users []model.Users
+	if err = cur.All(ctx, &users); err != nil {
 		panic(err)
 	}
 
-	fmt.Fprintf(w, "\nResult\n")
+	// var tiers [7]TierSection
+	// tiers[0] = TierSection{30, 1, "Iron"}
+	// tiers[1] = TierSection{40, 2, "Iron"}
+	// tiers[2] = TierSection{55, 3, "Iron"}
+	// tiers[3] = TierSection{100, 1, "Gold"}
+	// tiers[4] = TierSection{110, 2, "Gold"}
+	// tiers[5] = TierSection{300, 1, "Diamond"}
+	// tiers[6] = TierSection{1000, 5, "Diamond"}
 
-	var tiers [7]TierSection
-
-	tiers[0] = TierSection{30, 1, "Iron"}
-	tiers[1] = TierSection{40, 2, "Iron"}
-	tiers[2] = TierSection{55, 3, "Iron"}
-
-	tiers[3] = TierSection{100, 1, "Gold"}
-	tiers[4] = TierSection{110, 2, "Gold"}
-
-	tiers[5] = TierSection{300, 1, "Diamond"}
-	tiers[6] = TierSection{1000, 5, "Diamond"}
+	tiers := []TierSection{{30, 1, "Iron"},
+		{40, 2, "Iron"},
+		{55, 3, "Iron"},
+		{100, 1, "Gold"},
+		{110, 2, "Gold"},
+		{300, 1, "Diamond"},
+		{1000, 5, "Diamond"},
+	}
 
 	fmt.Fprintf(w, "\n\n[Tier Update Process]\n")
 
 	//tiers = [5]TierSection{{1, "dd"}, {1, "dd"}, {1, "dd"}, {1, "dd"}, {1, "dd"}}
 
 	var tierIndex int = 0
-	for _index, udata := range userData {
+	for _index, udata := range users {
 
 		tierIndex = 0
 		fmt.Fprintf(w, strconv.Itoa(_index)+" : "+udata.String()+"\n")
@@ -236,9 +243,18 @@ func HandleUserScore(w http.ResponseWriter, r *http.Request) {
 		var result, err = user.UpdateOne(
 			ctx,
 			bson.M{"summoner": udata.Summoner},
+			// bson.D{
+			// 	{"$set", bson.D{{"rank_solo.tierNum", tiers[tierIndex].TierNum}}},
+			// 	{"$set", bson.D{{"rank_solo.tier", tiers[tierIndex].Tier}}},
+			// 	{"$set", bson.D{{"rank_solo.score", tiers[tierIndex].Score}}},
+			// },
 			bson.D{
-				{"$set", bson.D{{"rank_solo.tierNum", tiers[tierIndex].TierNum}}},
-				{"$set", bson.D{{"rank_solo.tier", tiers[tierIndex].Tier}}},
+				{"$set",
+					bson.D{
+						{"rank_solo.tierNum", tiers[tierIndex].TierNum},
+						{"rank_solo.tier", tiers[tierIndex].Tier},
+						{"rank_solo.score", tiers[tierIndex].Score},
+					}},
 			},
 		)
 
@@ -248,7 +264,6 @@ func HandleUserScore(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fmt.Fprintf(w, "Update Succeed : modified Count : "+strconv.Itoa(int(result.ModifiedCount))+"\n")
-
 	}
 
 }
@@ -282,7 +297,8 @@ func main() {
 	// 함께하는 친구 검색
 	http.HandleFunc("/friends", HandleFriends)
 
-	http.HandleFunc("/users", HandleUser)
+	http.HandleFunc("/users", HandleUsers)
+	http.HandleFunc("/user", HandleUser)
 
 	http.HandleFunc("/userScore", HandleUserScore)
 
