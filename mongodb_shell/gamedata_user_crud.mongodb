@@ -1,0 +1,65 @@
+use('gamedata');
+
+// create
+//db.user.insertOne({summoner: "ghost", rank_solo: { tier: "Diamond", tierNum: 2, score: 90} } );
+// Diamond 5 2500
+// Diamond 4 2600
+// Diamond 3 2700
+// Diamond 2 2800
+// + score 90
+// 2890
+// mmr => 2890
+
+// MMR
+// iron 5 0
+// iron 4 100
+// bronze 5 500
+// silver 5 1000
+// gold 5 1500
+// platinum 5 2000
+// dia 5 2500
+
+
+//https://docs.mongodb.com/manual/reference/method/db.collection.find/
+// 1.
+findFilterObj = {"summoner": "ghost"}
+
+
+
+/*
+1. 티어 올리기  다이아 1로 바뀌고
+2. 스코어는 승급전 완료해서 score 가 0 으로
+socre 가 100이 넘으면 1 티어가 올라감
+
+게임 한판 이기면 10
+
+*/
+// 2.
+//617df8c431ba93edea962c6d
+//db.user.find(findFilterObj )
+
+
+
+// 3.
+//updateObj = ""
+
+
+
+//점수 업데이트
+
+// 4.
+db.user.update(
+  findFilterObj
+  ,
+   {
+     $set: {"rank_solo.score": 10 }
+   }
+)
+
+
+/*
+
+// 5.
+db.user.deleteOne()
+
+*/
